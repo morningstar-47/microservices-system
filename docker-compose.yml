@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_HOST=postgres
+  user-service:
+    build: ./user-service
+    ports:
+      - "8001:8000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_HOST=mongo
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8000"
+    depends_on:
+      - auth-service
+      - user-service
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  mongo:
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+volumes:
+  postgres_data:
+  mongo_data:
