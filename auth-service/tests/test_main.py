@@ -11,7 +11,7 @@
 
 import pytest
 from httpx import AsyncClient
-from auth_service.main import app  # Assure-toi que le fichier contenant ton app s'appelle main.py
+from .main import app  # Assure-toi que le fichier contenant ton app s'appelle main.py
 from unittest.mock import AsyncMock, patch
 from passlib.context import CryptContext
 

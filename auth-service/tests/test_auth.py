@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 from unittest.mock import AsyncMock, patch, MagicMock
-from main import app, get_password_hash, verify_password, create_access_token
+from .main import app, get_password_hash, verify_password, create_access_token
 from jose import jwt
 import os
 
