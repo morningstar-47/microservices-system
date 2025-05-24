@@ -17,6 +17,21 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: Set up environment variables
+      run: |
+        echo "MONGO_HOST=mongodb" >> .env
+        echo "MONGO_PORT=27017" >> .env
+        echo "MONGO_DB_NAME=user_db" >> .env
+        echo "MONGO_USER=admin" >> .env
+        echo "MONGO_PASSWORD=password" >> .env
+        echo "SECRET_KEY=your-secret-key" >> .env
+        echo "ALGORITHM=HS256" >> .env
+        echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+        echo "ENVIRONMENT=development" >> .env
+        echo "LOG_LEVEL=INFO" >> .env
+        echo "ALLOWED_HOSTS=*" >> .env
+        echo "CORS_ORIGINS=*" >> .env
+
     - name: Build and start services
       run: docker compose up --build -d
       working-directory: .
