@@ -1,64 +1,39 @@
-name: CI
+name: CI - Microservices Auth
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
-  test-auth-service:
+  build-and-test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_DB: auth_db
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-        ports:
-          - 5432:5432
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          cd auth-service
-          pip install -r requirements.txt
-      - name: Run tests
-        run: |
-          cd auth-service
-          pytest
 
-  test-user-service:
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          cd user-service
-          pip install -r requirements.txt
-      - name: Run tests
-        run: |
-          cd user-service
-          pytest
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-  test-api-gateway:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          cd api-gateway
-          pip install -r requirements.txt
-      - name: Run tests
-        run: |
-          cd api-gateway
-          pytest 
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Navigate to Microservices Auth directory
+      run: cd microservices-auth
+
+    - name: Build and start services
+      run: docker-compose up --build -d
+      working-directory: ./microservices-auth
+
+    # You can add steps here to run tests if your services have them.
+    # Example (assuming tests can be run with docker-compose exec):
+    # - name: Run Auth Service tests
+    #   run: docker-compose exec auth-service pytest /app/tests
+    #   working-directory: ./microservices-auth
+
+    - name: Check running containers
+      run: docker-compose ps
+      working-directory: ./microservices-auth
+
+    - name: Stop services
+      run: docker-compose down
+      working-directory: ./microservices-auth 
