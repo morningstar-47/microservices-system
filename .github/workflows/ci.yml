@@ -19,18 +19,18 @@ jobs:
 
     - name: Build and start services
       run: docker-compose up --build -d
-      working-directory: ./microservices-auth
+      working-directory: .
 
     # You can add steps here to run tests if your services have them.
     # Example (assuming tests can be run with docker-compose exec):
     # - name: Run Auth Service tests
     #   run: docker-compose exec auth-service pytest /app/tests
-    #   working-directory: ./microservices-auth
+    #   working-directory: .
 
     - name: Check running containers
       run: docker-compose ps
-      working-directory: ./microservices-auth
+      working-directory: .
 
     - name: Stop services
       run: docker-compose down
-      working-directory: ./microservices-auth 
+      working-directory: . 
