@@ -1,0 +1,32 @@
+# Ignorer les fichiers d'environnement
+.env
+
+# Ignorer les caches Python
+__pycache__/
+*.pyc
+
+# Ignorer les environnements virtuels Python
+venv/
+.venv/
+
+# Ignorer les caches Pytest
+.pytest_cache/
+
+# Ignorer les fichiers de build et de distribution
+dist/
+build/
+*.egg-info/
+
+# Ignorer les volumes Docker (si montés localement dans le projet, ce qui est rare mais prudent)
+# Note: Les volumes nommés de Docker Compose sont gérés par Docker en dehors du projet
+
+# Ignorer les fichiers spécifiques aux OS
+.DS_Store
+
+# Ignorer les fichiers spécifiques aux IDEs (optionnel, si non partagés)
+.vscode/
+.idea/
+
+# Ignorer les logs ou fichiers temporaires spécifiques si applicable
+# logs/
+# temp/ 
