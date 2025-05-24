@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field, validator
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -10,6 +10,9 @@ import json
 from typing import Optional, List
 from bson import ObjectId
 from contextlib import asynccontextmanager
+from prometheus_client import Counter, Histogram, generate_latest
+from fastapi.responses import PlainTextResponse
+import time
 
 # Configuration
 MONGO_HOST = os.getenv("MONGO_HOST", "mongo")
@@ -105,6 +108,10 @@ class MongoDB:
 
 db = MongoDB()
 
+# Metrics
+REQUEST_COUNT = Counter('user_service_requests_total', 'Total number of incoming requests', ['method', 'endpoint', 'status_code'])
+REQUEST_LATENCY = Histogram('user_service_request_duration_seconds', 'Request latency in seconds', ['method', 'endpoint', 'status_code'])
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -134,6 +141,22 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# Middleware for metrics
+@app.middleware("http")
+async def collect_metrics(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+
+    endpoint = request.url.path
+    method = request.method
+    status_code = response.status_code
+
+    REQUEST_COUNT.labels(method=method, endpoint=endpoint, status_code=status_code).inc()
+    REQUEST_LATENCY.labels(method=method, endpoint=endpoint, status_code=status_code).observe(process_time)
+
+    return response
 
 # Security
 security = HTTPBearer()
@@ -178,6 +201,10 @@ async def health_check():
             "timestamp": datetime.utcnow().isoformat(),
             "database": "disconnected"
         }
+
+@app.get("/metrics")
+async def metrics():
+    return PlainTextResponse(generate_latest())
 
 @app.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(

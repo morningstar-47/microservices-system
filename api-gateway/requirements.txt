@@ -7,3 +7,4 @@ circuitbreaker==2.0.0
 python-multipart==0.0.9
 pytest==8.3.1
 pytest-asyncio==0.23.5
+prometheus_client==0.20.0

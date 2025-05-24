@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import httpx
@@ -13,6 +13,7 @@ from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
 import asyncio
 from circuitbreaker import circuit
+from prometheus_client import Counter, Histogram, generate_latest
 
 # Configuration
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8000")
@@ -109,6 +110,10 @@ if ENVIRONMENT == "production":
         allowed_hosts=ALLOWED_HOSTS
     )
 
+# Metrics
+REQUEST_COUNT = Counter('api_gateway_requests_total', 'Total number of incoming requests', ['method', 'endpoint', 'status_code'])
+REQUEST_LATENCY = Histogram('api_gateway_request_duration_seconds', 'Request latency in seconds', ['method', 'endpoint', 'status_code'])
+
 # Request ID middleware
 @app.middleware("http")
 async def add_request_id(request: Request, call_next):
@@ -122,6 +127,7 @@ async def add_request_id(request: Request, call_next):
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Process-Time"] = str(process_time)
     
+    # Log structured request info
     log_structured(
         "Request processed",
         request_id=request_id,
@@ -130,6 +136,14 @@ async def add_request_id(request: Request, call_next):
         status_code=response.status_code,
         process_time=process_time
     )
+    
+    # Collect metrics
+    endpoint = request.url.path
+    method = request.method
+    status_code = response.status_code
+    
+    REQUEST_COUNT.labels(method=method, endpoint=endpoint, status_code=status_code).inc()
+    REQUEST_LATENCY.labels(method=method, endpoint=endpoint, status_code=status_code).observe(process_time)
     
     return response
 
@@ -164,6 +178,10 @@ async def health():
         "timestamp": datetime.utcnow().isoformat(),
         "services": services_status
     }
+
+@app.get("/metrics")
+async def metrics():
+    return PlainTextResponse(generate_latest())
 
 @app.post("/auth/register")
 async def register(request: Request):
