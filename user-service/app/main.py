@@ -137,7 +137,7 @@ async def lifespan(app: FastAPI):
         log_structured("MongoDB connection closed")
 
 app = FastAPI(
-    title="User Service",
+    title="User Service v1",
     version="1.0.0",
     lifespan=lifespan
 )
