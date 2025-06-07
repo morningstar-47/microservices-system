@@ -6,7 +6,7 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Starting Microservices Auth Stack...${NC}"
+echo -e "${GREEN}Starting Microservices System Stack...${NC}"
 
 # Check if .env exists
 if [ ! -f .env ]; then
@@ -143,11 +143,14 @@ fi
 
 # Start services
 echo -e "\n${GREEN}Starting microservices...${NC}"
-docker-compose up -d auth-service user-service
+docker-compose up -d auth-service user-service map-service ai-service report-service
 
 # Wait for services
 wait_for_service "Auth Service" "http://localhost:8001/health" || exit 1
 wait_for_service "User Service" "http://localhost:8002/health" || exit 1
+wait_for_service "Map Service" "http://localhost:8003/health" || exit 1
+wait_for_service "AI Service" "http://localhost:8004/health" || exit 1
+wait_for_service "Report Service" "http://localhost:8005/health" || exit 1
 
 # Start API Gateway
 echo -e "\n${GREEN}Starting API Gateway...${NC}"
@@ -173,9 +176,12 @@ echo -e "\n${GREEN}=== Available Endpoints ===${NC}"
 echo "API Gateway: http://localhost:8080"
 echo "Auth Service: http://localhost:8001"
 echo "User Service: http://localhost:8002"
-echo "PostgreSQL: localhost:5432"
-echo "MongoDB: localhost:27017"
-echo "Redis: localhost:6379"
+echo "Map Service: http://localhost:8003"
+echo "AI Service: http://localhost:8004"
+echo "Report Service: http://localhost:8005"
+echo "PostgreSQL: http://localhost:5432"
+echo "MongoDB: http://localhost:27017"
+echo "Redis: http://localhost:6379"
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Prometheus: http://localhost:9090"

@@ -502,7 +502,7 @@
 from fastapi import FastAPI
 from middlewares.request_id import request_id_middleware
 from middlewares.cors import setup_cors
-from routes import auth_routes, user_routes, health, metrics
+from routes import auth_routes, user_routes, health, metrics, map_routes, ai_routes, report_routes
 from exceptions import setup_exception_handlers
 from config import lifespan, ENVIRONMENT, ALLOWED_HOSTS
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -517,6 +517,9 @@ if ENVIRONMENT == "production":
 
 app.include_router(auth_routes.router)
 app.include_router(user_routes.router)
+app.include_router(map_routes.router)
+app.include_router(ai_routes.router)
+app.include_router(report_routes.router)
 app.include_router(health.router)
 app.include_router(metrics.router)
 

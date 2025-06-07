@@ -11,6 +11,9 @@ from http_client import http_client  # Ton client httpx centralisé
 # =========================
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8000")
 USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://user-service:8000")
+MAP_SERVICE_URL = os.getenv("MAP_SERVICE_URL", "http://map-service:8000")
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://ai-service:8000")
+REPORT_SERVICE_URL = os.getenv("REPORT_SERVICE_URL", "http://report-service:8000")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")

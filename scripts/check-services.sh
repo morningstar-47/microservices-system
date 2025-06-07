@@ -72,7 +72,7 @@ done
 
 echo -e "\n${YELLOW}Network Connectivity:${NC}"
 # Check network
-network_name="microservices-auth_microservices-network"
+network_name="microservices-microservices-network"
 echo -n "Docker network: "
 if docker network ls | grep -q "$network_name"; then
     echo -e "${GREEN}✓ Exists${NC}"
@@ -84,7 +84,7 @@ else
 fi
 
 echo -e "\n${YELLOW}Port Availability:${NC}"
-for port in 8080 8001 8002 5432 27017 6379; do
+for port in 8080 8001 8002 8003 8004 8005 5432 27017 6379; do
     echo -n "Port $port: "
     if lsof -i :$port > /dev/null 2>&1; then
         echo -e "${GREEN}✓ In use${NC}"

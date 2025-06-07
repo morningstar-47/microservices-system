@@ -38,6 +38,12 @@ test: ## Run all tests
 	cd auth-service && pytest -v
 	@echo "Testing User Service..."
 	cd user-service && pytest -v
+	@echo "Testing Map Service..."
+	cd map-service && pytest -v
+	@echo "Testing AI Service..."
+	cd ai-service && pytest -v
+	@echo "Testing Report Service..."
+	cd report-service && pytest -v
 	@echo "Testing API Gateway..."
 	cd api-gateway && pytest -v
 
@@ -46,6 +52,12 @@ test-auth: ## Run auth service tests
 
 test-user: ## Run user service tests
 	cd user-service && pytest -v
+
+test-map: ## Run map service tests
+	cd map-service && pytest -v
+
+test-ai: ## Run ai service tests
+	cd ai-service && pytest -v
 
 test-gateway: ## Run API gateway tests
 	cd api-gateway && pytest -v
@@ -95,6 +107,9 @@ health-check: ## Check health of all services
 	@curl -s http://localhost:8080/health | jq '.' || echo "${RED}API Gateway is down${NC}"
 	@curl -s http://localhost:8001/health | jq '.' || echo "${RED}Auth Service is down${NC}"
 	@curl -s http://localhost:8002/health | jq '.' || echo "${RED}User Service is down${NC}"
+	@curl -s http://localhost:8003/health | jq '.' || echo "${RED}Map Service is down${NC}"
+	@curl -s http://localhost:8004/health | jq '.' || echo "${RED}AI Service is down${NC}"
+	@curl -s http://localhost:8005/health | jq '.' || echo "${RED}Report Service is down${NC}"
 
 dev: ## Start services in development mode with hot reload
 	@echo "${GREEN}Starting in development mode...${NC}"

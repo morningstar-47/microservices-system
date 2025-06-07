@@ -36,6 +36,36 @@ scrape_configs:
         regex: '(.+):.*'
         replacement: '${1}'
 
+  - job_name: 'map-service'
+    metrics_path: '/metrics'  
+    static_configs:
+      - targets: ['map-service:8000']
+    relabel_configs:
+      - source_labels: ['__address__']
+        target_label: 'instance'
+        regex: '(.+):.*'
+        replacement: '${1}'
+
+  - job_name: 'ai-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['ai-service:8000']
+    relabel_configs:
+      - source_labels: ['__address__']
+        target_label: 'instance'
+        regex: '(.+):.*'
+        replacement: '${1}'
+
+  - job_name: 'report-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['report-service:8000']
+    relabel_configs:
+      - source_labels: ['__address__']
+        target_label: 'instance'
+        regex: '(.+):.*'
+        replacement: '${1}'
+
   # Database exporters
   - job_name: 'postgres-exporter'
     metrics_path: '/metrics'
