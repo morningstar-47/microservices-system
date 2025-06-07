@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Response
 from services.map_service import proxy_map
 from fastapi.responses import JSONResponse
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter(prefix="/api/v1/maps")
 
 @router.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def map_proxy(path: str, request: Request):
