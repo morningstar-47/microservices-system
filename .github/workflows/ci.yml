@@ -1,4 +1,4 @@
-name: CI - Microservices Auth
+name: CI - Microservices System
 
 on:
   push:

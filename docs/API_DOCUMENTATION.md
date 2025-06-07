@@ -9,6 +9,9 @@ Cette architecture microservices fournit une solution complète pour la gestion 
 1. **API Gateway** (Port 8080) - Point d'entrée unique
 2. **Auth Service** (Port 8001) - Gestion de l'authentification
 3. **User Service** (Port 8002) - Gestion des utilisateurs
+4. **Map Service** (Port 8003) - Gestion de Geolocalisation
+5. **Ai Service** (Port 8004) - Integration de l'Intelligence Artificielle
+6. **Report Service** (Port 8005) - Gestion des Rapports 
 
 ## Authentification
 
