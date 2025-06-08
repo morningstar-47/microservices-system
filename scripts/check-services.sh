@@ -72,7 +72,7 @@ done
 
 echo -e "\n${YELLOW}Network Connectivity:${NC}"
 # Check network
-network_name="microservices-microservices-network"
+network_name="microservices-system_microservices-network"
 echo -n "Docker network: "
 if docker network ls | grep -q "$network_name"; then
     echo -e "${GREEN}✓ Exists${NC}"
