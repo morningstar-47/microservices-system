@@ -10,9 +10,10 @@ import json
 from prometheus_client import Counter, Histogram, generate_latest
 from contextlib import asynccontextmanager
 from bson import ObjectId
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, Response, JSONResponse
 import time
 from typing import Optional, List
+from bson.errors import InvalidId
 
 # Configuration
 MONGO_HOST = os.getenv("MONGO_HOST", "mongo")
@@ -49,7 +50,7 @@ class PyObjectId(ObjectId):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v):
+    def validate(cls, v, handler=None):
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid objectid")
         return ObjectId(v)
@@ -58,14 +59,47 @@ class PyObjectId(ObjectId):
     def __get_pydantic_json_schema__(cls, field_schema):
         field_schema.update(type="string")
 
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type, _handler):
+        from pydantic_core import core_schema
+        return core_schema.json_or_python_schema(
+            json_schema=core_schema.StringSchema(),  # <-- Correction ici
+            python_schema=core_schema.union_schema([
+                core_schema.is_instance_schema(ObjectId),
+                core_schema.chain_schema([
+                    core_schema.StringSchema(),
+                    core_schema.no_info_plain_validator_function(cls.validate)
+                ])
+            ]),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda x: str(x)
+            )
+        )
+
+
+# class MapBase(BaseModel):
+#     name: str
+#     description: str
+#     created_at: datetime = Field(default_factory=datetime.utcnow)
+#     updated_at: datetime = Field(default_factory=datetime.utcnow)
+#     created_by: str
+#     updated_by: str 
+
+class Coordinates(BaseModel):
+    latitude: float = Field(..., ge=-90.0, le=90.0)
+    longitude: float = Field(..., ge=-180.0, le=180.0)
+    altitude: Optional[float] = Field(default=None)
 
 class MapBase(BaseModel):
-    name: str
-    description: str
+    name: str = Field(..., min_length=3, max_length=100)
+    description: str = Field(..., max_length=500)
+    region: Optional[str] = Field(default=None)
+    coordinates: Optional[Coordinates] = None
+    tags: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     created_by: str
-    updated_by: str 
+    updated_by: str
 
 class MapCreate(MapBase):
     pass
@@ -76,9 +110,6 @@ class MapUpdate(BaseModel):
 
 class MapInDB(MapBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    created_by: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)   
 
     class Config:
         allow_population_by_field_name = True
@@ -171,6 +202,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         log_structured("JWT validation error", error=str(e), level="WARNING")
         raise credentials_exception 
 
+def validate_object_id(map_id: str):
+    try:
+        return ObjectId(map_id)
+    except (InvalidId, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid map_id")
+
 # Routes
 @app.get("/health")
 async def health_check():
@@ -220,14 +257,67 @@ async def list_maps(
     maps = await db.database.maps.find().skip(skip).limit(limit).to_list(length=limit)
     return maps
 
+@app.get('/maps/{map_id}', response_model=MapInDB)
+async def get_map(map_id: str, current_user: TokenData = Depends(get_current_user)):
+    map_obj_id = validate_object_id(map_id)
+    map_doc = await db.database.maps.find_one({"_id": map_obj_id})
+    if not map_doc:
+        raise HTTPException(status_code=404, detail="Map not found")
+    return MapInDB(**map_doc)
+
+@app.put('/maps/{map_id}', response_model=MapInDB)
+async def update_map(map_id: str, map: MapUpdate, current_user: TokenData = Depends(get_current_user)):
+    map_obj_id = validate_object_id(map_id)
+    map_doc = await db.database.maps.find_one({"_id": map_obj_id})
+    if not map_doc:
+        raise HTTPException(status_code=404, detail="Map not found")
+    if map_doc["created_by"] != current_user.username:
+        raise HTTPException(status_code=403, detail="Not authorized to update this map")
+    update_data = {k: v for k, v in map.model_dump().items() if v is not None}
+    update_data['updated_by'] = current_user.username
+    update_data['updated_at'] = datetime.now(timezone.utc)
+    result = await db.database.maps.update_one({"_id": map_obj_id}, {"$set": update_data})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Map not found")
+    updated_map = await db.database.maps.find_one({"_id": map_obj_id})
+    return MapInDB(**updated_map)
+
+@app.delete('/maps/{map_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_map(map_id: str, current_user: TokenData = Depends(get_current_user)):
+    map_obj_id = validate_object_id(map_id)
+    map_doc = await db.database.maps.find_one({"_id": map_obj_id})
+    if not map_doc:
+        raise HTTPException(status_code=404, detail="Map not found")
+    if map_doc["created_by"] != current_user.username:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this map")
+    result = await db.database.maps.delete_one({"_id": map_obj_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Map not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 @app.exception_handler(ValueError)
 async def value_error_handler(request, exc):
-    return HTTPException(status_code=400, detail=str(exc))
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc):
-    log_structured("Unhandled exception", error=str(exc), level="ERROR")
-    return HTTPException(status_code=500, detail="Internal server error")
+    error_id = str(ObjectId())
+    error_message = str(exc) if ENVIRONMENT == "development" else "An unexpected error occurred"
+    log_structured(
+        "Unhandled exception",
+        error_id=error_id,
+        error_type=exc.__class__.__name__,
+        error_message=error_message,
+        level="ERROR"
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error_id": error_id,
+            "message": "Internal server error",
+            "details": error_message if ENVIRONMENT == "development" else None
+        }
+    )
 
 if __name__ == '__main__':
     import uvicorn
@@ -268,4 +358,4 @@ if __name__ == '__main__':
 #     return {'map': 'sample map'}
 
 # if __name__ == '__main__':
-#     uvicorn.run(app, host='0.0.0.0', port=8000) 
+#     uvicorn.run(app, host='0.0.0.0', port=8000)
