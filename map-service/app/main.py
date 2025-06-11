@@ -63,11 +63,11 @@ class PyObjectId(ObjectId):
     def __get_pydantic_core_schema__(cls, _source_type, _handler):
         from pydantic_core import core_schema
         return core_schema.json_or_python_schema(
-            json_schema=core_schema.StringSchema(),  # <-- Correction ici
+            json_schema=core_schema.str_schema(),  # Fixed: Use str_schema() instead of StringSchema()
             python_schema=core_schema.union_schema([
                 core_schema.is_instance_schema(ObjectId),
                 core_schema.chain_schema([
-                    core_schema.StringSchema(),
+                    core_schema.str_schema(),  # Fixed: Use str_schema() instead of StringSchema()
                     core_schema.no_info_plain_validator_function(cls.validate)
                 ])
             ]),
@@ -76,6 +76,11 @@ class PyObjectId(ObjectId):
             )
         )
 
+
+    class Config:
+        populate_by_name = True  # Fixed: Changed from 'allow_population_by_field_name'
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
 
 # class MapBase(BaseModel):
 #     name: str
