@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Response
 from services.report_service import proxy_report
 from fastapi.responses import JSONResponse
 
-router = APIRouter(prefix="/api/v1/reports")
+router = APIRouter()
 
 @router.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def report_proxy(path: str, request: Request):

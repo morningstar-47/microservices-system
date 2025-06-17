@@ -206,7 +206,7 @@ async def health_check():
 async def metrics():
     return PlainTextResponse(generate_latest())
 
-@app.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user: UserCreate,
     current_user: TokenData = Depends(get_current_user)
@@ -257,7 +257,7 @@ async def create_user(
             detail="Failed to create user"
         )
 
-@app.get("/users", response_model=List[UserResponse])
+@app.get("/", response_model=List[UserResponse])
 async def list_users(
     skip: int = 0,
     limit: int = 100,
@@ -297,7 +297,7 @@ async def list_users(
             detail="Failed to retrieve users"
         )
 
-@app.get("/users/{user_id}", response_model=UserResponse)
+@app.get("/{user_id}", response_model=UserResponse)
 async def get_user(
     user_id: str,
     current_user: TokenData = Depends(get_current_user)
@@ -330,7 +330,7 @@ async def get_user(
         role=user["role"]
     )
 
-@app.patch("/users/{user_id}", response_model=UserResponse)
+@app.patch("/{user_id}", response_model=UserResponse)
 async def update_user(
     user_id: str,
     user_update: UserUpdate,
@@ -388,7 +388,7 @@ async def update_user(
             detail="Failed to update user"
         )
 
-@app.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
     user_id: str,
     current_user: TokenData = Depends(get_current_user)

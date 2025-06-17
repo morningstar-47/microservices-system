@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Response
 from services.auth_service import proxy_auth
 from fastapi.responses import JSONResponse
 
-router = APIRouter(prefix="/auth")
+router = APIRouter()
 
 @router.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def auth_proxy(path: str, request: Request):

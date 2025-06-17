@@ -238,7 +238,7 @@ async def health_check():
 async def metrics():
     return PlainTextResponse(generate_latest())
 
-@app.post('/maps', response_model=MapInDB, status_code=status.HTTP_201_CREATED)
+@app.post('/', response_model=MapInDB, status_code=status.HTTP_201_CREATED)
 async def create_map(
     map: MapCreate,
     current_user: TokenData = Depends(get_current_user)
@@ -253,7 +253,7 @@ async def create_map(
     created_map = await db.database.maps.find_one({"_id": result.inserted_id})
     return MapInDB(**created_map)
 
-@app.get('/maps', response_model=List[MapInDB])
+@app.get('/', response_model=List[MapInDB])
 async def list_maps(
     skip: int = 0,
     limit: int = 100,
@@ -262,7 +262,7 @@ async def list_maps(
     maps = await db.database.maps.find().skip(skip).limit(limit).to_list(length=limit)
     return maps
 
-@app.get('/maps/{map_id}', response_model=MapInDB)
+@app.get('/{map_id}', response_model=MapInDB)
 async def get_map(map_id: str, current_user: TokenData = Depends(get_current_user)):
     map_obj_id = validate_object_id(map_id)
     map_doc = await db.database.maps.find_one({"_id": map_obj_id})
@@ -270,7 +270,7 @@ async def get_map(map_id: str, current_user: TokenData = Depends(get_current_use
         raise HTTPException(status_code=404, detail="Map not found")
     return MapInDB(**map_doc)
 
-@app.put('/maps/{map_id}', response_model=MapInDB)
+@app.put('/{map_id}', response_model=MapInDB)
 async def update_map(map_id: str, map: MapUpdate, current_user: TokenData = Depends(get_current_user)):
     map_obj_id = validate_object_id(map_id)
     map_doc = await db.database.maps.find_one({"_id": map_obj_id})
@@ -287,7 +287,7 @@ async def update_map(map_id: str, map: MapUpdate, current_user: TokenData = Depe
     updated_map = await db.database.maps.find_one({"_id": map_obj_id})
     return MapInDB(**updated_map)
 
-@app.delete('/maps/{map_id}', status_code=status.HTTP_204_NO_CONTENT)
+@app.delete('/{map_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_map(map_id: str, current_user: TokenData = Depends(get_current_user)):
     map_obj_id = validate_object_id(map_id)
     map_doc = await db.database.maps.find_one({"_id": map_obj_id})
