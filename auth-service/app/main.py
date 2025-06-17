@@ -91,7 +91,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
-
 # Database
 class DatabaseConnection:
     def __init__(self):
@@ -335,7 +334,7 @@ async def login(user_credentials: UserLogin):
 
 @app.get("/verify", response_model=dict)
 async def verify_token(current_user: TokenData = Depends(get_current_user)):
-    return {"username": current_user.username, "valid": True}
+    return {"username": current_user.username,  "valid": True, }
 
 # Error handlers
 @app.exception_handler(ValueError)

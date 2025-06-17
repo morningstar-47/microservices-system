@@ -192,7 +192,7 @@ async def health_check():
 async def metrics():
     return PlainTextResponse(generate_latest())
 
-@app.post('/ais', response_model=AIInDB, status_code=status.HTTP_201_CREATED)
+@app.post('/', response_model=AIInDB, status_code=status.HTTP_201_CREATED)
 async def create_ai(
     ai: AICreate,
     current_user: TokenData = Depends(get_current_user)
@@ -207,7 +207,7 @@ async def create_ai(
     created_ai = await db.database.ais.find_one({"_id": result.inserted_id})
     return AIInDB(**created_ai)
 
-@app.get('/ais', response_model=List[AIInDB])
+@app.get('/', response_model=List[AIInDB])
 async def list_ais(
     skip: int = 0,
     limit: int = 100,

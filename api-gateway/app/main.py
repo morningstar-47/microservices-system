@@ -515,13 +515,14 @@ app.middleware("http")(request_id_middleware)
 if ENVIRONMENT == "production":
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
 
-app.include_router(auth_routes.router)
-app.include_router(user_routes.router)
-app.include_router(map_routes.router)
-app.include_router(ai_routes.router)
-app.include_router(report_routes.router)
-app.include_router(health.router)
-app.include_router(metrics.router)
+app.include_router(auth_routes.router, prefix="/auth", tags=["Authentication"])
+app.include_router(user_routes.router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(map_routes.router, prefix="/api/v1/maps", tags=["Maps"])
+app.include_router(ai_routes.router, prefix="/api/v1/ais", tags=["AI"])
+app.include_router(report_routes.router, prefix="/api/v1/reports", tags=["Reports"])
+
+app.include_router(health.router, tags=["System"])
+app.include_router(metrics.router, tags=["System"])
 
 setup_exception_handlers(app)
 

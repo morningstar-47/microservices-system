@@ -191,7 +191,7 @@ async def health_check():
 async def metrics():
     return PlainTextResponse(generate_latest())
 
-@app.post('/reports', response_model=ReportInDB, status_code=status.HTTP_201_CREATED)
+@app.post('/', response_model=ReportInDB, status_code=status.HTTP_201_CREATED)
 async def create_report(
     report: ReportCreate,
     current_user: TokenData = Depends(get_current_user)
@@ -206,7 +206,7 @@ async def create_report(
     created_report = await db.database.reports.find_one({"_id": result.inserted_id})
     return ReportInDB(**created_report)
 
-@app.get('/reports', response_model=List[ReportInDB])
+@app.get('/', response_model=List[ReportInDB])
 async def list_reports(
     skip: int = 0,
     limit: int = 100,
